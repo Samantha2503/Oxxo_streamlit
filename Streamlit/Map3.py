@@ -287,7 +287,7 @@ if page == "Inicio":
     with col2:
         # Usando la imagen local, asegúrate de que la ruta sea correcta desde la ubicación de tu script.
         # Si prefieres una URL pública: "https://upload.wikimedia.org/wikipedia/commons/e/e9/OXXO_logo.png"
-        st.image("/Streamlit/oxxo.png", width=150)
+        st.image("Streamlit/oxxo.png", width=150)
     
     st.markdown("---")
     
@@ -551,7 +551,7 @@ elif page == "Mapa Interactivo":
     st.markdown("Explora las ubicaciones de tiendas OXXO y el potencial de mercado geográficamente.")
     st.title("🗺️ Visualización del Mapa")
     try:
-        with open("/Streamlit/mapa_oxxo_tot.html", "r", encoding="utf-8") as f:
+        with open("Streamlit/mapa_oxxo_tot.html", "r", encoding="utf-8") as f:
             html_mapa = f.read()
         components.html(html_mapa, height=600)
     except FileNotFoundError:
@@ -564,7 +564,7 @@ elif page == "Mapa Interactivo":
     import joblib
 
     # Cargar modelo
-    modelo = joblib.load("/Streamlit/xgb_final_cv_model.pkl")
+    modelo = joblib.load("Streamlit/xgb_final_cv_model.pkl")
 
     # Lista de features usadas en el modelo
     features = [
@@ -648,7 +648,7 @@ elif page == "Modelo de Predicción":
     @st.cache_resource
     def load_model():
         try:
-            model = joblib.load('/Streamlit/xgb_final_cv_model.pkl')
+            model = joblib.load('Streamlit/xgb_final_cv_model.pkl')
             return model
         except Exception as e:
             st.error(f"Error al cargar el modelo: {str(e)}")
