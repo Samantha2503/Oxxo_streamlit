@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import joblib
+import joblib as joblib
 
 
 # --- Configuración de la página con diseño elegante ---
