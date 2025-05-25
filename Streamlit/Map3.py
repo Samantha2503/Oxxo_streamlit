@@ -382,6 +382,8 @@ elif page == "Análisis":
     df_tienda2=pd.read_csv('Streamlit/datos_parte2.csv')
     df_tienda3=pd.read_csv('Streamlit/datos_parte3.csv')
     df_tienda = pd.concat([df_tienda, df_tienda2, df_tienda3], ignore_index=True)
+    df_mes=df_tienda
+    df_tienda=df_mes
     with tab1:
         st.markdown("## 📋 Observaciones Generales del Desempeño de Tiendas OXXO")
 
