@@ -373,176 +373,316 @@ if page == "Inicio":
 elif page == "Análisis":
     st.title("📊 Análisis de Datos")
     st.markdown("Explora los hallazgos clave y las visualizaciones del análisis de ubicación de OXXO.")
-    
-    tab1, tab2, tab3 = st.tabs(["📈 Métricas de Rendimiento", "🌍 Tendencias Geográficas", "🔍 Análisis Detallado"])
+
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Observaciones","📈 Métricas de Rendimiento", "📊 Análisis de Desempeño", "📈 Evolución Mensual de Ventas"])
+
+    # ---------- TAB 1 ----------
     
     with tab1:
-        st.markdown("### Análisis de Rendimiento de Tiendas")
-        
-        # Generar datos de rendimiento de ejemplo
-        performance_data = pd.DataFrame({
-            'Métrica': ['Ventas Diarias Promedio', 'Tráfico de Clientes', 'Tamaño de Cesta', 'Tasa de Conversión'],
-            'Valor': [12500, 320, 39.10, 18.5],
-            'Meta': [15000, 350, 42.00, 20.0],
-            'Cambio': [-16.7, -8.6, -6.9, -7.5]
-        })
-        
-        # Mostrar métricas - Colores ajustados para tema claro
-        st.dataframe(
-            performance_data.style
-            .bar(subset=['Cambio'], align='mid', color=['#E31937', '#3D9970']) # Usando variable CSS para Rojo OXXO
-            .format({'Valor': '${:,.2f}', 'Meta': '${:,.2f}', 'Cambio': '{:.1f}%'})
-            .applymap(lambda x: 'color: #E31937' if isinstance(x, (int, float)) and x < 0 else 'color: #3D9970', subset=['Cambio']),
-            use_container_width=True,
-            height=200
-        )
-        
-        # Gráfico de distribución de ventas
-        st.markdown("#### Distribución de Ventas por Tipo de Tienda")
-        sales_data = pd.DataFrame({
-            'Tipo de Tienda': ['Estándar', 'Horario Extendido', 'Alto Tráfico', 'Residencial', 'Comercial'],
-            'Ventas Promedio': [12000, 14500, 18500, 11000, 15500],
-            'Ventas Medianas': [11500, 14000, 17500, 10500, 15000]
-        })
-        
-        fig = px.bar(
-            sales_data, 
-            x='Tipo de Tienda', 
-            y='Ventas Promedio',
-            color='Tipo de Tienda',
-            color_discrete_sequence=['#E31937', '#FF6B6B', '#FF8E8E', '#FFB6B6', '#FFD3D3'],
-            text='Ventas Promedio',
-            height=400
-        )
-        fig.update_traces(texttemplate='$%{text:,.0f}', textposition='outside')
-        fig.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font_color=st.get_option('theme.textColor'), # Usando el color de texto predeterminado de Streamlit para plotly
-            showlegend=False,
-            yaxis_title="Ventas Mensuales Promedio (USD)",
-            xaxis_title=""
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
+        st.markdown("## 📋 Observaciones Generales del Desempeño de Tiendas OXXO")
+
+        # === Cálculos ===
+        df_mes['CUMPLIMIENTO'] = df_mes['VENTA_TOTAL'] / df_mes['META']
+        df_mes['EXITO_MENSUAL'] = df_mes['CUMPLIMIENTO'] >= 1
+
+        cumplimiento_resumen = df_mes.groupby('TIENDA_ID')['EXITO_MENSUAL'].agg(['sum', 'count'])
+        cumplimiento_resumen['PORC_MESES_CUMPLIDOS'] = cumplimiento_resumen['sum'] / cumplimiento_resumen['count']
+        cumplimiento_resumen['TIENDA_EXITOSA'] = cumplimiento_resumen['PORC_MESES_CUMPLIDOS'] >= 0.8
+
+        porcentaje_exito_global = round(100 * cumplimiento_resumen['TIENDA_EXITOSA'].mean(), 1)
+
+        df_resumen = df_tienda.merge(cumplimiento_resumen, on='TIENDA_ID')
+
+        exito_por_entorno = df_resumen.groupby('ENTORNO_DES')['TIENDA_EXITOSA'].mean().reset_index()
+        exito_por_entorno.columns = ['ENTORNO', 'EXITO_%']
+        entornos_con_alto_exito = exito_por_entorno[exito_por_entorno['EXITO_%'] > exito_por_entorno['EXITO_%'].mean()]['ENTORNO'].tolist()
+
+        exito_por_nse = df_resumen.groupby('NIVELSOCIOECONOMICO_DES')['TIENDA_EXITOSA'].mean()
+        nse_mejor = exito_por_nse.idxmax()
+
+        tiendas_con_datos = cumplimiento_resumen.reset_index()
+        tiendas_nuevas = tiendas_con_datos[tiendas_con_datos['count'] < 6].shape[0]
+
+        variabilidad = df_mes.groupby('TIENDA_ID')['VENTA_TOTAL'].agg(['mean', 'std'])
+        variabilidad['cv'] = variabilidad['std'] / variabilidad['mean']
+        porc_alta_var = round(100 * (variabilidad['cv'] > 0.3).mean(), 1)
+
+        ultimo_mes = df_mes['MES_ID'].max()
+        ventas_ult_mes = df_mes[df_mes['MES_ID'] == ultimo_mes]
+        ventas_ult_mes = ventas_ult_mes.merge(cumplimiento_resumen['PORC_MESES_CUMPLIDOS'], on='TIENDA_ID')
+        ventas_ult_mes['CUMPLIMIENTO_MES'] = ventas_ult_mes['VENTA_TOTAL'] / ventas_ult_mes['META']
+        bajaron_rendimiento = (ventas_ult_mes['CUMPLIMIENTO_MES'] < ventas_ult_mes['PORC_MESES_CUMPLIDOS']).sum()
+
+        # === Visualización ===
+
+        st.markdown(f"""
+        A continuación se presentan los hallazgos más relevantes derivados del análisis mensual de cumplimiento de tiendas, útiles para la toma de decisiones estratégicas:
+
+        - *{porcentaje_exito_global}% de las tiendas* cumplen su meta de ventas en al menos el 80% de los meses en operación, lo que indica un rendimiento positivo general y metas bien calibradas.
+
+        - *Entornos con mejor desempeño: Los entornos con mayores tasas de tiendas exitosas son: *{", ".join(entornos_con_alto_exito)}**. Estas zonas son buenos candidatos para expansión.
+
+        - *Nivel Socioeconómico destacado: El nivel socioeconómico *{nse_mejor}** presenta el mayor porcentaje de tiendas exitosas, lo que sugiere una fuerte afinidad entre el modelo OXXO y dicho segmento.
+
+        - *Tiendas nuevas bajo observación: Se identificaron *{tiendas_nuevas} tiendas** con menos de 6 meses de operación, por lo que no pueden clasificarse aún como exitosas o no.
+
+        - *Alta variabilidad mensual: Un *{porc_alta_var}%** de las tiendas muestran alta variación en ventas mes a mes (CV > 0.3), indicando posible estacionalidad o influencia de factores externos.
+
+        - *Descenso reciente en rendimiento: Al menos *{bajaron_rendimiento} tiendas** tuvieron un cumplimiento inferior a su promedio histórico en el último mes, lo que podría señalar problemas de abastecimiento o cambios competitivos.
+
+        ---
+        """)
+
+
+     # ---------- TAB 2 ----------
     with tab2:
-        st.markdown("### Distribución Geográfica")
-        
-        # Generar datos geográficos de ejemplo
-        geo_data = pd.DataFrame({
-            'Ciudad': ['Monterrey', 'Guadalajara', 'Ciudad de México', 'Puebla', 'Tijuana'],
-            'Conteo de Tiendas': [142, 118, 205, 87, 65],
-            'Ventas por Tienda': [13500, 12800, 15500, 11200, 12100],
-            'Potencial de Crecimiento': [8.5, 7.2, 6.8, 9.1, 8.9]
-        })
-        
+        st.markdown("### 🧭 Análisis Descriptivo de Tiendas")
+        st.markdown("Este apartado ofrece una visión general de la composición de las tiendas OXXO según variables clave como entorno, nivel socioeconómico y ventas promedio.")
+        st.markdown("---")
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
-            st.markdown("#### Conteo de Tiendas por Ciudad")
-            fig = px.pie(
-                geo_data,
-                names='Ciudad',
-                values='Conteo de Tiendas',
-                color_discrete_sequence=['#E31937', '#C8102E', '#A8071C', '#7A0513', '#4D030C'],
-                hole=0.4
-            )
-            fig.update_layout(
+            st.markdown("#### Distribución de Tiendas por Entorno")
+            conteo_entornos = df_tienda['ENTORNO_DES'].value_counts().reset_index()
+            conteo_entornos.columns = ['Entorno', 'Tiendas']
+            fig_entorno = px.pie(conteo_entornos, names='Entorno', values='Tiendas',
+                                hole=0.4,
+                                color_discrete_sequence=['#E31937', '#C8102E', '#A8071C', '#7A0513', '#4D030C'])
+            fig_entorno.update_traces(textposition='inside', textfont_size=16)
+            fig_entorno.update_layout(
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
-                font_color=st.get_option('theme.textColor'), # Usando el color de texto predeterminado de Streamlit para plotly
-                showlegend=True,
+                font=dict(size=16, color='#333333'),
                 legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=-0.2,
-                    xanchor="center",
-                    x=0.5
+                    orientation="h", 
+                    y=-0.2, 
+                    x=0.5, 
+                    xanchor='center',
+                    font=dict(size=14, color='#333333')
                 )
             )
-            st.plotly_chart(fig, use_container_width=True)
-        
+            st.plotly_chart(fig_entorno, use_container_width=True)
+
         with col2:
-            st.markdown("#### Rendimiento de Ventas")
-            fig = px.bar(
-                geo_data,
-                x='Ciudad',
-                y='Ventas por Tienda',
-                color='Potencial de Crecimiento',
-                color_continuous_scale=['#FFD700', '#E31937'],
-                text='Ventas por Tienda',
+            st.markdown("#### Ventas Promedio por Entorno")
+            df_ventas_entorno = df_mes.groupby('ENTORNO_DES')['VENTA_TOTAL'].mean().reset_index()
+            fig_ventas = px.bar(
+                df_ventas_entorno, 
+                x='ENTORNO_DES', 
+                y='VENTA_TOTAL',
+                color='ENTORNO_DES',
+                text='VENTA_TOTAL',
+                color_discrete_sequence=['#E31937', '#FF6B6B', '#FF8E8E', '#FFB6B6', '#FFD3D3'],
                 height=400
             )
-            fig.update_traces(texttemplate='$%{text:,.0f}', textposition='outside')
-            fig.update_layout(
+            fig_ventas.update_traces(texttemplate='$%{text:,.0f}', textposition='outside', textfont_size=14)
+            fig_ventas.update_layout(
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
-                font_color=st.get_option('theme.textColor'), # Usando el color de texto predeterminado de Streamlit para plotly
-                coloraxis_colorbar=dict(
-                    title="Crecimiento %",
-                    thicknessmode="pixels",
-                    thickness=15,
-                    lenmode="pixels",
-                    len=200,
-                    yanchor="middle",
-                    y=0.5
-                ),
-                yaxis_title="Ventas Promedio por Tienda (USD)",
+                font=dict(size=16, color='#333333'),
+                showlegend=False,
+                yaxis_title="Ventas Promedio (MXN)",
                 xaxis_title=""
             )
-            st.plotly_chart(fig, use_container_width=True)
-    
-    with tab3:
-        st.markdown("### Análisis del Modelo Predictivo")
-        
-        st.markdown(f"""
-        <div style="background-color: var(--card-background-light); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-            <h4 style="color: var(--primary); margin-top: 0;">Factores Clave para el Éxito de la Tienda</h4>
-            <p style="color: var(--text-dark);">Nuestro modelo predictivo identificó estos como los factores más significativos para determinar el éxito de la tienda:</p>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
-                <div>
-                    <p style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem;">📍 Factores de Ubicación</p>
-                    <ul style="color: var(--text-dark);">
-                        <li>Densidad de población (radio de 500m)</li>
-                        <li>Proximidad al transporte público</li>
-                        <li>Población diurna vs. nocturna</li>
-                        <li>Densidad de competidores</li>
-                    </ul>
-                </div>
-                <div>
-                    <p style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem;">🏪 Características de la Tienda</p>
-                    <ul style="color: var(--text-dark);">
-                        <li>Tamaño y diseño de la tienda</li>
-                        <li>Disponibilidad de estacionamiento</li>
-                        <li>Operación en horario extendido</li>
-                        <li>Oferta de servicios</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("#### Métricas de Rendimiento del Modelo")
-        
-        model_metrics = pd.DataFrame({
-            'Métrica': ['Precisión', 'Exactitud', 'Recuperación', 'Puntuación F1', 'ROC AUC'],
-            'Valor': [0.83, 0.81, 0.85, 0.83, 0.89],
-            'Meta': [0.80, 0.78, 0.82, 0.80, 0.85]
-        })
-        
-        # Colores ajustados para tema claro
-        st.dataframe(
-            model_metrics.style
-            .format({'Valor': '{:.2f}', 'Meta': '{:.2f}'})
-            .apply(lambda x: ['background-color: #E6FFE6' if x.Valor >= x.Meta else 'background-color: #FFE6E6' for i in x], axis=1) # Fondo verde/rojo claro
-            .applymap(lambda x: 'color: #3D9970' if isinstance(x, (int, float)) and x >= model_metrics.loc[x.name, 'Meta'] else 'color: var(--primary)', subset=['Valor']),
-            use_container_width=True,
-            height=200,
-            hide_index=True
+            st.plotly_chart(fig_ventas, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("#### Distribución de Tiendas por Nivel Socioeconómico")
+        df_nse_count = df_tienda['NIVELSOCIOECONOMICO_DES'].value_counts().reset_index()
+        df_nse_count.columns = ['NSE', 'Tiendas']
+        fig_nse = px.bar(df_nse_count, x='NSE', y='Tiendas',
+                        color='Tiendas',
+                        text='Tiendas',
+                        color_continuous_scale=['#FFD700', '#E31937'])
+        fig_nse.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=14)
+        fig_nse.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(size=16, color='#333333'),
+            xaxis_title="Nivel Socioeconómico",
+            yaxis_title="Cantidad de Tiendas"
         )
+        st.plotly_chart(fig_nse, use_container_width=True)
+
+    # ---------- TAB 3 ----------
+    with tab3:
+        st.markdown("### 📊 Análisis de Desempeño") 
+
+        df_tienda['BAJO_RENDIMIENTO'] = df_tienda['PORCENTAJE_CUMPLIMIENTO'] < 0.5
+        bajo_rendimiento = df_tienda[df_tienda['BAJO_RENDIMIENTO']]
+        bajo_entorno = bajo_rendimiento['ENTORNO_DES'].value_counts().reset_index()
+        bajo_entorno.columns = ['Entorno', 'Tiendas']
+        fig_bajo = px.bar(bajo_entorno, x='Entorno', y='Tiendas',
+                          color='Tiendas', text_auto=True,
+                          color_continuous_scale=['#FFD700', '#E31937'])
+        fig_bajo.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font_color=st.get_option('theme.textColor'),
+            xaxis_title="Entorno",
+            yaxis_title="Cantidad de Tiendas < 50%",
+            title="Distribución de Bajo Rendimiento por Entorno"
+        )
+        st.plotly_chart(fig_bajo, use_container_width=True)
+
+        st.markdown("#### Cumplimiento Promedio por Nivel Socioeconómico")
+        df_nse = df_tienda.groupby('NIVELSOCIOECONOMICO_DES')['PORCENTAJE_CUMPLIMIENTO'].mean().reset_index()
+        fig_nse = px.bar(df_nse, x='NIVELSOCIOECONOMICO_DES', y='PORCENTAJE_CUMPLIMIENTO',
+                         color='PORCENTAJE_CUMPLIMIENTO', text_auto='.2f',
+                         color_continuous_scale=['#FFD700', '#E31937'])
+        fig_nse.update_layout(
+            title="Cumplimiento por NSE",
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font_color=st.get_option('theme.textColor'),
+            xaxis_title="Nivel Socioeconómico",
+            yaxis_title="% Cumplimiento"
+        )
+        st.plotly_chart(fig_nse, use_container_width=True)
+
+        st.markdown("#### 🏅 Top 10 Tiendas con Mayor Cumplimiento")
+        top_high = df_tienda.sort_values('PORCENTAJE_CUMPLIMIENTO', ascending=False).head(10)
+        st.dataframe(
+            top_high[['TIENDA_ID', 'ENTORNO_DES', 'NIVELSOCIOECONOMICO_DES', 'PORCENTAJE_CUMPLIMIENTO']]
+            .rename(columns={
+                'TIENDA_ID': 'ID Tienda',
+                'ENTORNO_DES': 'Entorno',
+                'NIVELSOCIOECONOMICO_DES': 'NSE',
+                'PORCENTAJE_CUMPLIMIENTO': '% Cumplimiento'
+            })
+            .style.format({'% Cumplimiento': '{:.2%}'})
+        , use_container_width=True)
+
+        st.markdown("#### 🚨 Top 10 Tiendas con Menor Cumplimiento")
+        top_low = df_tienda.sort_values('PORCENTAJE_CUMPLIMIENTO', ascending=True).head(10)
+        st.dataframe(
+            top_low[['TIENDA_ID', 'ENTORNO_DES', 'NIVELSOCIOECONOMICO_DES', 'PORCENTAJE_CUMPLIMIENTO']]
+            .rename(columns={
+                'TIENDA_ID': 'ID Tienda',
+                'ENTORNO_DES': 'Entorno',
+                'NIVELSOCIOECONOMICO_DES': 'NSE',
+                'PORCENTAJE_CUMPLIMIENTO': '% Cumplimiento'
+            })
+            .style.format({'% Cumplimiento': '{:.2%}'})
+        , use_container_width=True)
+
+        st.markdown("---")
+
+    # ---------- TAB 4 ----------
+    
+    with tab4:
+        st.markdown("""
+        <style>
+        /* Forzar color negro en texto de radio y selectbox */
+        div[data-testid="stRadio"] > div > label > div,
+        div[data-testid="stSelectbox"] > label,
+        div[data-testid="stSelectbox"] div[data-baseweb="select"] div {
+            color: black !important;
+            font-weight: 600 !important;
+        }
+
+        /* Texto de las opciones (dentro del dropdown) */
+        div[data-testid="stSelectbox"] span {
+            color: black !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        st.subheader("📈 Evolución Mensual de Ventas")
+
+        modo = st.radio("", ["Tienda individual", "Promedio por entorno", "Comparar varias tiendas"])
 
 
+        if modo == "Tienda individual":
+            tienda_sel = st.selectbox("Selecciona una tienda", sorted(df_mes['TIENDA_ID'].unique()))
+            df_tienda_sel = df_mes[df_mes['TIENDA_ID'] == tienda_sel].sort_values('MES_ID')
+            meta_fija = df_tienda_sel['META'].iloc[0]
+            
+            fig = px.line(df_tienda_sel, x='MES_ID', y='VENTA_TOTAL', markers=True,
+                        title=f"🏍️ Tienda {tienda_sel} - Ventas Mensuales",
+                        template='plotly_white')
+            fig.update_traces(line=dict(color='#E31937'), marker=dict(size=8))
+            fig.add_scatter(x=df_tienda_sel['MES_ID'], 
+                            y=[meta_fija]*len(df_tienda_sel),
+                            mode='lines', name='META', 
+                            line=dict(color='gray', dash='dash'))
+            fig.update_layout(
+                font=dict(size=16, color='#333333'),
+                xaxis_title="Mes",
+                yaxis_title="Venta Total (MXN)",
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        elif modo == "Promedio por entorno":
+            df_agg = df_mes.groupby(['MES_ID', 'ENTORNO_DES'])[['VENTA_TOTAL', 'META']].mean().reset_index()
+
+            fig_venta = px.line(df_agg, x='MES_ID', y='VENTA_TOTAL', color='ENTORNO_DES', markers=True,
+                                title="🔵 Ventas promedio por entorno",
+                                color_discrete_sequence=['#7A0513', '#A8071C', '#C8102E', '#E31937'])
+            fig_venta.update_layout(
+                font=dict(size=16, color='#333333'),
+                xaxis_title="Mes",
+                yaxis_title="Ventas Promedio (MXN)",
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            st.plotly_chart(fig_venta, use_container_width=True)
+
+            fig_meta = px.line(df_agg, x='MES_ID', y='META', color='ENTORNO_DES', markers=True,
+                            title="🔴 Meta promedio por entorno",
+                            color_discrete_sequence=['#FFD700', '#E31937', '#A8071C', '#7A0513'])
+            fig_meta.update_layout(
+                font=dict(size=16, color='#333333'),
+                xaxis_title="Mes",
+                yaxis_title="Meta Promedio (MXN)",
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+            st.plotly_chart(fig_meta, use_container_width=True)
+
+        elif modo == "Comparar varias tiendas":
+            tiendas_sel = st.multiselect("Selecciona tiendas", sorted(df_mes['TIENDA_ID'].unique()))
+            if tiendas_sel:
+                df_multi = df_mes[df_mes['TIENDA_ID'].isin(tiendas_sel)].sort_values(['TIENDA_ID', 'MES_ID'])
+
+                # Paleta de colores oscuros para asegurar visibilidad
+                colores_oxxo = [
+                    "#E31937",  # Rojo OXXO oscuro
+                    "#F2A007",  # Mostaza fuerte (amarillo OXXO)
+                    "#3C3C3B",  # Gris oscuro neutro
+                    "#0B3D91",  # Azul profundo (para contraste)
+                    "#8C1D40",  # Vino/burdeo serio
+                    "#58508D",  # Morado oscuro sobrio
+                    "#BC4E00",  # Naranja quemado (parecido a uniforme)
+                    "#2F4F4F",  # Verde grisáceo (profundo y neutro)
+                    "#00736B",  # Verde petróleo
+                    "#702963",  # Púrpura oscuro
+                ]
+
+
+                fig = px.line(df_multi, x='MES_ID', y='VENTA_TOTAL', color='TIENDA_ID', markers=True,
+                            title="Comparación de Ventas por Tienda",
+                            color_discrete_sequence=colores_oxxo)   
+                fig.update_layout(
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=dict(color='black')
+                )
+
+                metas = df_multi.groupby('TIENDA_ID')['META'].first()
+                if metas.nunique() == 1:
+                    meta_ref = metas.iloc[0]
+                    fig.add_scatter(x=df_multi['MES_ID'].unique(),
+                                    y=[meta_ref]*len(df_multi['MES_ID'].unique()),
+                                    mode='lines', name='META',
+                                    line=dict(color='gray', dash='dash'))
+
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Selecciona al menos una tienda para comparar.")
 
 # --- Página: Mapa Interactivo ---
 
