@@ -447,8 +447,12 @@ elif page == "Análisis":
                                 color_discrete_sequence=['#E31937', '#C8102E', '#A8071C', '#7A0513', '#4D030C'])
             fig_entorno.update_traces(textposition='inside', textfont_size=16)
             fig_entorno.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
+                title=dict(
+                    text="Distribución de Tiendas por Entorno",
+                    font=dict(size=20, color='#333333'),
+                    x=0.5,
+                    xanchor='center'
+                ),
                 font=dict(size=16, color='#333333'),
                 legend=dict(
                     orientation="h", 
@@ -456,7 +460,9 @@ elif page == "Análisis":
                     x=0.5, 
                     xanchor='center',
                     font=dict(size=14, color='#333333')
-                )
+                ),
+                plot_bgcolor='white',
+                paper_bgcolor='white'
             )
             st.plotly_chart(fig_entorno, use_container_width=True)
 
@@ -474,13 +480,32 @@ elif page == "Análisis":
             )
             fig_ventas.update_traces(texttemplate='$%{text:,.0f}', textposition='outside', textfont_size=14)
             fig_ventas.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font=dict(size=16, color='#333333'),
-                showlegend=False,
-                yaxis_title="Ventas Promedio (MXN)",
-                xaxis_title=""
+                title=dict(
+                    text="Ventas Promedio por Entorno",
+                    font=dict(size=20, color='#333333'),
+                    x=0.5,
+                    xanchor='center'
+                ),
+                xaxis=dict(
+                    title=dict(text="Entorno", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black'
+                ),
+                yaxis=dict(
+                    title=dict(text="Ventas Promedio (MXN)", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black'
+                ),
+                font=dict(size=14, color='#333333'),
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                showlegend=False
             )
+
             st.plotly_chart(fig_ventas, use_container_width=True)
 
         st.markdown("---")
@@ -493,12 +518,31 @@ elif page == "Análisis":
                         color_continuous_scale=['#FFD700', '#E31937'])
         fig_nse.update_traces(texttemplate='%{text}', textposition='outside', textfont_size=14)
         fig_nse.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(size=16, color='#333333'),
-            xaxis_title="Nivel Socioeconómico",
-            yaxis_title="Cantidad de Tiendas"
+            title=dict(
+                text="Distribución de Tiendas por Nivel Socioeconómico",
+                font=dict(size=20, color='#333333'),
+                x=0.5,
+                xanchor='center'
+            ),
+            xaxis=dict(
+                title=dict(text="Nivel Socioeconómico", font=dict(size=16, color='#333333')),
+                tickfont=dict(size=14, color='#333333'),
+                showline=True,
+                linewidth=1,
+                linecolor='black'
+            ),
+            yaxis=dict(
+                title=dict(text="Cantidad de Tiendas", font=dict(size=16, color='#333333')),
+                tickfont=dict(size=14, color='#333333'),
+                showline=True,
+                linewidth=1,
+                linecolor='black'
+            ),
+            font=dict(size=14, color='#333333'),
+            plot_bgcolor='white',
+            paper_bgcolor='white'
         )
+
         st.plotly_chart(fig_nse, use_container_width=True)
 
     # ---------- TAB 3 ----------
