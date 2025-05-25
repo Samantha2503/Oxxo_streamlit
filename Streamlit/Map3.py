@@ -377,13 +377,11 @@ elif page == "Análisis":
     tab1, tab2, tab3, tab4 = st.tabs(["📋 Observaciones","📈 Métricas de Rendimiento", "📊 Análisis de Desempeño", "📈 Evolución Mensual de Ventas"])
 
     # ---------- TAB 1 ----------
-    df_mes=pd.read_csv('Streamlit/df_por_tienda.csv')
-    df_tienda=pd.read_csv('Streamlit/datos_parte1.csv')
-    df_tienda2=pd.read_csv('Streamlit/datos_parte2.csv')
-    df_tienda3=pd.read_csv('Streamlit/datos_parte3.csv')
-    df_tienda = pd.concat([df_tienda, df_tienda2, df_tienda3], ignore_index=True)
-    df_mes=df_tienda
-    df_tienda=df_mes
+    df_tienda=pd.read_csv('Streamlit/df_por_tienda.csv')
+    df_mes=pd.read_csv('Streamlit/datos_parte1.csv')
+    df_mes2=pd.read_csv('Streamlit/datos_parte2.csv')
+    df_mes3=pd.read_csv('Streamlit/datos_parte3.csv')
+    df_mes = pd.concat([df_mes, df_mes2, df_mes3], ignore_index=True)
     with tab1:
         st.markdown("## 📋 Observaciones Generales del Desempeño de Tiendas OXXO")
 
@@ -514,7 +512,7 @@ elif page == "Análisis":
     # ---------- TAB 3 ----------
     with tab3:
         st.markdown("### 📊 Análisis de Desempeño") 
-
+        
         df_tienda['BAJO_RENDIMIENTO'] = df_tienda['PORCENTAJE_CUMPLIMIENTO'] < 0.5
         bajo_rendimiento = df_tienda[df_tienda['BAJO_RENDIMIENTO']]
         bajo_entorno = bajo_rendimiento['ENTORNO_DES'].value_counts().reset_index()
