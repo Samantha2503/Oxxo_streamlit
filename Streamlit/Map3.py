@@ -685,20 +685,47 @@ elif page == "Análisis":
             meta_fija = df_tienda_sel['META'].iloc[0]
             
             fig = px.line(df_tienda_sel, x='MES_ID', y='VENTA_TOTAL', markers=True,
-                        title=f"🏍️ Tienda {tienda_sel} - Ventas Mensuales",
-                        template='plotly_white')
+              title=f"🏍️ Tienda {tienda_sel} - Ventas Mensuales",
+              template='plotly_white')
+
             fig.update_traces(line=dict(color='#E31937'), marker=dict(size=8))
+
             fig.add_scatter(x=df_tienda_sel['MES_ID'], 
                             y=[meta_fija]*len(df_tienda_sel),
                             mode='lines', name='META', 
                             line=dict(color='gray', dash='dash'))
+
+            # Aquí insertas esto
             fig.update_layout(
-                font=dict(size=16, color='#333333'),
-                xaxis_title="Mes",
-                yaxis_title="Venta Total (MXN)",
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)'
+                title=dict(
+                    text=f"📊 Tienda {tienda_sel} - Ventas Mensuales",
+                    font=dict(size=22, color='#333333'),
+                    x=0.05,
+                    xanchor='left'
+                ),
+                xaxis=dict(
+                    title=dict(text="Mes", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black',
+                    mirror=True
+                ),
+                yaxis=dict(
+                    title=dict(text="Venta Total (MXN)", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black',
+                    mirror=True
+                ),
+                font=dict(size=14, color='#333333'),
+                plot_bgcolor='white',
+                paper_bgcolor='white'
             )
+
+
+
             st.plotly_chart(fig, use_container_width=True)
 
         elif modo == "Promedio por entorno":
@@ -708,24 +735,66 @@ elif page == "Análisis":
                                 title="🔵 Ventas promedio por entorno",
                                 color_discrete_sequence=['#7A0513', '#A8071C', '#C8102E', '#E31937'])
             fig_venta.update_layout(
-                font=dict(size=16, color='#333333'),
-                xaxis_title="Mes",
-                yaxis_title="Ventas Promedio (MXN)",
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)'
+                title=dict(
+                    text="🔵 Ventas promedio por entorno",
+                    font=dict(size=22, color='#333333'),
+                    x=0.05,
+                    xanchor='left'
+                ),
+                xaxis=dict(
+                    title=dict(text="Mes", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black',
+                    mirror=True
+                ),
+                yaxis=dict(
+                    title=dict(text="Ventas Promedio (MXN)", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black',
+                    mirror=True
+                ),
+                font=dict(size=14, color='#333333'),
+                plot_bgcolor='white',
+                paper_bgcolor='white'
             )
+
             st.plotly_chart(fig_venta, use_container_width=True)
 
             fig_meta = px.line(df_agg, x='MES_ID', y='META', color='ENTORNO_DES', markers=True,
                             title="🔴 Meta promedio por entorno",
                             color_discrete_sequence=['#FFD700', '#E31937', '#A8071C', '#7A0513'])
             fig_meta.update_layout(
-                font=dict(size=16, color='#333333'),
-                xaxis_title="Mes",
-                yaxis_title="Meta Promedio (MXN)",
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)'
+                title=dict(
+                    text="🔴 Meta promedio por entorno",
+                    font=dict(size=22, color='#333333'),
+                    x=0.05,
+                    xanchor='left'
+                ),
+                xaxis=dict(
+                    title=dict(text="Mes", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black',
+                    mirror=True
+                ),
+                yaxis=dict(
+                    title=dict(text="Meta Promedio (MXN)", font=dict(size=16, color='#333333')),
+                    tickfont=dict(size=14, color='#333333'),
+                    showline=True,
+                    linewidth=1,
+                    linecolor='black',
+                    mirror=True
+                ),
+                font=dict(size=14, color='#333333'),
+                plot_bgcolor='white',
+                paper_bgcolor='white'
             )
+
             st.plotly_chart(fig_meta, use_container_width=True)
 
         elif modo == "Comparar varias tiendas":
@@ -752,10 +821,33 @@ elif page == "Análisis":
                             title="Comparación de Ventas por Tienda",
                             color_discrete_sequence=colores_oxxo)   
                 fig.update_layout(
+                    title=dict(
+                        text="📊 Comparación de Ventas por Tienda",
+                        font=dict(size=22, color='#333333'),
+                        x=0.05,
+                        xanchor='left'
+                    ),
+                    xaxis=dict(
+                        title=dict(text="Mes", font=dict(size=16, color='#333333')),
+                        tickfont=dict(size=14, color='#333333'),
+                        showline=True,
+                        linewidth=1,
+                        linecolor='black',
+                        mirror=True
+                    ),
+                    yaxis=dict(
+                        title=dict(text="Venta Total (MXN)", font=dict(size=16, color='#333333')),
+                        tickfont=dict(size=14, color='#333333'),
+                        showline=True,
+                        linewidth=1,
+                        linecolor='black',
+                        mirror=True
+                    ),
+                    font=dict(size=14, color='#333333'),
                     plot_bgcolor='white',
-                    paper_bgcolor='white',
-                    font=dict(color='black')
+                    paper_bgcolor='white'
                 )
+
 
                 metas = df_multi.groupby('TIENDA_ID')['META'].first()
                 if metas.nunique() == 1:
