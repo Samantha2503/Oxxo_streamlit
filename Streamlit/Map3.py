@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import joblib as joblib
+import matplotlib.pyplot as plt
+
 
 
 # --- Configuración de la página con diseño elegante ---
