@@ -377,7 +377,7 @@ elif page == "Análisis":
     tab1, tab2, tab3, tab4 = st.tabs(["📋 Observaciones","📈 Métricas de Rendimiento", "📊 Análisis de Desempeño", "📈 Evolución Mensual de Ventas"])
 
     # ---------- TAB 1 ----------
-    
+    df_mes=pd.read_csv('Streamlit/df_por_tienda.csv')
     with tab1:
         st.markdown("## 📋 Observaciones Generales del Desempeño de Tiendas OXXO")
 
