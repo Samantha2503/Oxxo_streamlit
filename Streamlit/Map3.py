@@ -548,7 +548,7 @@ elif page == "Análisis":
     # ---------- TAB 3 ----------
     with tab3:
         st.markdown("### 📊 Análisis de Desempeño") 
-        
+
         df_tienda['BAJO_RENDIMIENTO'] = df_tienda['PORCENTAJE_CUMPLIMIENTO'] < 0.5
         bajo_rendimiento = df_tienda[df_tienda['BAJO_RENDIMIENTO']]
         bajo_entorno = bajo_rendimiento['ENTORNO_DES'].value_counts().reset_index()
@@ -557,13 +557,31 @@ elif page == "Análisis":
                           color='Tiendas', text_auto=True,
                           color_continuous_scale=['#FFD700', '#E31937'])
         fig_bajo.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font_color=st.get_option('theme.textColor'),
-            xaxis_title="Entorno",
-            yaxis_title="Cantidad de Tiendas < 50%",
-            title="Distribución de Bajo Rendimiento por Entorno"
+            title=dict(
+                text="Distribución de Bajo Rendimiento por Entorno",
+                font=dict(size=20, color='#333333'),
+                x=0.5,
+                xanchor='center'
+            ),
+            xaxis=dict(
+                title=dict(text="Entorno", font=dict(size=16, color='#333333')),
+                tickfont=dict(size=14, color='#333333'),
+                showline=True,
+                linecolor='black',
+                linewidth=1
+            ),
+            yaxis=dict(
+                title=dict(text="Cantidad de Tiendas (< 50% Cumplimiento)", font=dict(size=16, color='#333333')),
+                tickfont=dict(size=14, color='#333333'),
+                showline=True,
+                linecolor='black',
+                linewidth=1
+            ),
+            font=dict(size=14, color='#333333'),
+            plot_bgcolor='white',
+            paper_bgcolor='white'
         )
+
         st.plotly_chart(fig_bajo, use_container_width=True)
 
         st.markdown("#### Cumplimiento Promedio por Nivel Socioeconómico")
@@ -572,17 +590,38 @@ elif page == "Análisis":
                          color='PORCENTAJE_CUMPLIMIENTO', text_auto='.2f',
                          color_continuous_scale=['#FFD700', '#E31937'])
         fig_nse.update_layout(
-            title="Cumplimiento por NSE",
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font_color=st.get_option('theme.textColor'),
-            xaxis_title="Nivel Socioeconómico",
-            yaxis_title="% Cumplimiento"
+            title=dict(
+                text="Cumplimiento Promedio por Nivel Socioeconómico",
+                font=dict(size=20, color='#333333'),
+                x=0.5,
+                xanchor='center'
+            ),
+            xaxis=dict(
+                title=dict(text="Nivel Socioeconómico", font=dict(size=16, color='#333333')),
+                tickfont=dict(size=14, color='#333333'),
+                showline=True,
+                linecolor='black',
+                linewidth=1
+            ),
+            yaxis=dict(
+                title=dict(text="% Cumplimiento", font=dict(size=16, color='#333333')),
+                tickfont=dict(size=14, color='#333333'),
+                showline=True,
+                linecolor='black',
+                linewidth=1
+            ),
+            font=dict(size=14, color='#333333'),
+            plot_bgcolor='white',
+            paper_bgcolor='white'
         )
-        st.plotly_chart(fig_nse, use_container_width=True)
 
-        st.markdown("#### 🏅 Top 10 Tiendas con Mayor Cumplimiento")
+        st.plotly_chart(fig_nse, use_container_width=True)
         top_high = df_tienda.sort_values('PORCENTAJE_CUMPLIMIENTO', ascending=False).head(10)
+        st.markdown("""
+        <div style="background-color: #F0F2F6; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid #28a745;">
+        <h5 style="color: #28a745;">🏅 Top 10 Tiendas con Mayor Cumplimiento</h5>
+        """, unsafe_allow_html=True)
+
         st.dataframe(
             top_high[['TIENDA_ID', 'ENTORNO_DES', 'NIVELSOCIOECONOMICO_DES', 'PORCENTAJE_CUMPLIMIENTO']]
             .rename(columns={
@@ -594,8 +633,15 @@ elif page == "Análisis":
             .style.format({'% Cumplimiento': '{:.2%}'})
         , use_container_width=True)
 
-        st.markdown("#### 🚨 Top 10 Tiendas con Menor Cumplimiento")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
         top_low = df_tienda.sort_values('PORCENTAJE_CUMPLIMIENTO', ascending=True).head(10)
+        st.markdown("""
+        <div style="background-color: #F0F2F6; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 4px solid #dc3545;">
+        <h5 style="color: #dc3545;">🚨 Top 10 Tiendas con Menor Cumplimiento</h5>
+        """, unsafe_allow_html=True)
+
         st.dataframe(
             top_low[['TIENDA_ID', 'ENTORNO_DES', 'NIVELSOCIOECONOMICO_DES', 'PORCENTAJE_CUMPLIMIENTO']]
             .rename(columns={
@@ -607,8 +653,7 @@ elif page == "Análisis":
             .style.format({'% Cumplimiento': '{:.2%}'})
         , use_container_width=True)
 
-        st.markdown("---")
-
+        st.markdown("</div>", unsafe_allow_html=True)
     # ---------- TAB 4 ----------
     
     with tab4:
