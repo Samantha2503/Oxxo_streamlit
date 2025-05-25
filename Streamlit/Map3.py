@@ -250,15 +250,7 @@ with st.sidebar:
     
     st.markdown("---") # Separador visual
 
-    # Añadir algunos widgets útiles en la barra lateral
-    st.markdown("### Filtros")
-    analysis_period = st.select_slider(
-        "Período de Análisis",
-        options=["1 Mes", "3 Meses", "6 Meses", "1 Año", "2 Años"],
-        value="1 Año"
-    )
-    
-    st.markdown("---")
+   
     
     st.markdown("### Acerca de")
     st.markdown("""
